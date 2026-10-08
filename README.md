@@ -40,7 +40,3 @@ O novo ecossistema é composto por três fluxos desacoplados no n8n, conectados 
 * **JSON Inválido da IA:** Tratamento de falhas no nó Code para garantir fallback caso a IA retorne texto fora do padrão estruturado.
 * **Disparos Duplicados de Status:** Validação de estados no ClickUp para evitar a criação duplicada de pastas no Google Drive.
 * **Falhas de Integração:** Monitoramento de logs no n8n.
-
-### Fases de Desenvolvimento
-* **Fase 1 (MVP):** Construção do Fluxo 3 (Provisionamento de Pós-Venda) e Fluxo 1 (EAP com IA e regra de preço).
-* **Fase 2 (Evolução):** Automação do Google Slides (Fluxo 2) e medição oficial da linha de base com a EJ piloto.
