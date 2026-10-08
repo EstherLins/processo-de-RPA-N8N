@@ -6,9 +6,6 @@
   1. Tempo de trabalho e tempo de ciclo da proposta.
   2. Tempo de handover até o projeto estar pronto no Drive e no ClickUp.
   3. Retrabalho e erros de padronização.
-  4. Porcentagem de tarefas da EAP gerada pela IA que o gerente precisou ajustar. 
-  *(Nota: Como a amostra inicial será pequena, os resultados serão apresentados como piloto).*
-
 ---
 
 ## 2. Cenário Atual (*As-Is*)
