@@ -1,1 +1,648 @@
-
+{
+  "name": "Criação do Slide da Proposta",
+  "nodes": [
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "team": "90131122731",
+        "events": [
+          "taskStatusUpdated"
+        ],
+        "filters": {
+          "listId": "901329222605"
+        }
+      },
+      "id": "5629ee04-6add-4cb4-b209-05683f39e1e3",
+      "name": "Detectar mudança de status da proposta",
+      "type": "n8n-nodes-base.clickUpTrigger",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        -288
+      ],
+      "webhookId": "61e35afa-cea0-47e9-99a4-6b9e61804fce",
+      "credentials": {
+        "clickUpOAuth2Api": {
+          "id": "riJEP96Y9DAkmCVU",
+          "name": "ClickUp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1f0b16de-4bde-46c4-90c3-7f5d304b985b",
+              "leftValue": "={{ $json.history_items[0].after.status }}",
+              "rightValue": "aprovado",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "aff0dcd1-73ee-4355-9070-04aba9f994b2",
+      "name": "Verificar status APROVADO",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -176,
+        -288
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "get",
+        "id": "={{ $json.task_id }}"
+      },
+      "id": "b95c631c-8870-43fe-8981-a4292685ad73",
+      "name": "Coletar dados da proposta",
+      "type": "n8n-nodes-base.clickUp",
+      "typeVersion": 1,
+      "position": [
+        112,
+        32
+      ],
+      "credentials": {
+        "clickUpOAuth2Api": {
+          "id": "riJEP96Y9DAkmCVU",
+          "name": "ClickUp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "searchMethod": "query",
+        "queryString": "={{ \"name = 'Proposta - \" + $('Coletar dados da proposta').first().json.custom_fields.find(f => f.name === \"Nome da Empresa\").value + \"' and mimeType = 'application/vnd.google-apps.spreadsheet' and trashed = false\" }}",
+        "filter": {},
+        "options": {}
+      },
+      "id": "dd771b16-9239-4555-b7f5-0b784108d01d",
+      "name": "Encontrar planilha da proposta",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        336,
+        32
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "pzdnBWdCozyNtzwn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "PRECIFICAÇÃO",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "70f8d2b4-8046-48ef-937e-6610faefa941",
+      "name": "Coletar dados da PRECIFICAÇÃO",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        560,
+        -160
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KpJLMi240uPpQNeZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 984261383,
+          "mode": "list",
+          "cachedResultName": "CRONOGRAMA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1p-jyCvEU12wlUXz63c7tHFkilosyhR_YOnL4Mf9V8Wk/edit#gid=984261383"
+        },
+        "options": {}
+      },
+      "id": "2d009194-9465-4d0f-8ada-8c586ac98ee2",
+      "name": "Coletar dados do CRONOGRAMA",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        560,
+        32
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KpJLMi240uPpQNeZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1636432634,
+          "mode": "list",
+          "cachedResultName": "EAP",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16-GK-Cyzo28g6TsLZO_ESU5bsctaHiO_EELxZKKwaZw/edit#gid=1636432634"
+        },
+        "options": {}
+      },
+      "id": "ecfd55b9-6124-4849-920d-a016abf6abf0",
+      "name": "Coletar dados da EAP",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        560,
+        224
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KpJLMi240uPpQNeZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "id": "f3415795-0bde-4cf9-8bb5-35bb681f9ba2",
+      "name": "Unificar as 3 abas",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        784,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const clean = (o) => {\n  const r = {};\n  for (const [k, v] of Object.entries(o)) {\n    if (k === 'row_number') continue;\n    if (v === '' || v === null || v === undefined) continue;\n    r[k] = v;\n  }\n  return r;\n};\nconst rows = (name) => $(name).all().map(i => i.json);\n\nconst eap = rows('Coletar dados da EAP')\n  .filter(r => String(r['NOME DA ETAPA'] || '').trim() !== '')\n  .map(clean);\nconst precificacao = rows('Coletar dados da PRECIFICAÇÃO')\n  .map(clean)\n  .filter(r => Object.keys(r).length > 0);\nconst cronograma = rows('Coletar dados do CRONOGRAMA')\n  .map(clean)\n  .filter(r => Object.keys(r).length > 0);\n\nconst t = $('Coletar dados da proposta').first().json;\nconst clickup = {\n  nome_tarefa: t.name,\n  descricao: t.description || t.text_content || '',\n  status: t.status && t.status.status,\n  data_inicio: t.start_date,\n  data_vencimento: t.due_date,\n  responsaveis: (t.assignees || []).map(a => a.username || a.email),\n  campos_personalizados: (t.custom_fields || [])\n    .map(f => ({ nome: f.name, valor: f.value }))\n    .filter(f => f.valor !== undefined && f.valor !== null && f.valor !== '')\n};\n\nreturn [{\n  json: {\n    clickup_info: clickup,\n    eap_completa: eap,\n    precificacao_completa: precificacao,\n    cronograma_completo: cronograma\n  }\n}];"
+      },
+      "id": "b7bd0217-ab55-4ab4-b1de-1f11d419bf0e",
+      "name": "Unificar os dados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1008,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Você é um especialista em redação de propostas comerciais.\nCom base nos dados consolidados das abas da planilha e da tarefa do ClickUp, extraia e organize as informações para preencher os slides da proposta comercial.\n\nUse estritamente os dados fornecidos; nunca invente valores nem use marcadores entre colchetes. Se algum dado não existir, escreva \"A definir\". Todos os valores devem ser strings.\n\nRetorne APENAS um objeto JSON válido (sem blocos de código markdown ou crases extras) exatamente com estas chaves:\n\n{\n  \"NOME_PROJETO\": \"Nome ou tipo do projeto (ex: Pesquisa de Mercado)\",\n  \"NOME_EMPRESA\": \"Nome da empresa cliente\",\n  \"DATA_PROPOSTA\": \"{{ $now.toFormat('dd/MM/yyyy') }}\",\n  \"RESPONSAVEL_COMERCIAL\": \"Nome do responsável comercial da equipe\",\n  \"OBJETIVO_PROJETO\": \"Objetivo principal do projeto detalhado\",\n  \"RESULTADOS_CHAVE\": \"Lista dos resultados-chave esperados\",\n  \"INDICADORES\": \"Indicadores que o cliente já acompanha\",\n  \"DATA_INICIO\": \"Data de início prevista formatada\",\n  \"DATA_TERMINO\": \"Data de término prevista formatada\",\n  \"DURACAO_DIAS\": \"Número de dias úteis estimados\",\n  \"EAP_RESUMIDA\": \"Resumo estruturado das etapas da EAP\",\n  \"VALOR_TOTAL\": \"Valor total formatado (ex: R$ 15.000,00)\"\n}\n\nDados de entrada do fluxo:\n{{ JSON.stringify($json) }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "7babbc8e-2d88-4d88-aebb-dd8257c87b76",
+      "name": "Gerar texto do slide da proposta",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        640,
+        -160
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "Gateway credits",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "={{ $json.NOME_EMPRESA }} - {{ $json.NOME_PROJETO }}",
+        "limit": 1,
+        "filter": {
+          "whatToSearch": "folders"
+        },
+        "options": {}
+      },
+      "id": "37c3c8d9-45d0-4e6b-96af-4b84cee1da94",
+      "name": "Encontrar pasta da proposta",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        992,
+        -160
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "pzdnBWdCozyNtzwn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "1cuJCNLL_02xPZphjxGylEpUQLeDlk0w_Ij-NjGfaHBs",
+          "mode": "list",
+          "cachedResultName": "Modelo Slide Proposta Comercial",
+          "cachedResultUrl": "https://docs.google.com/presentation/d/1cuJCNLL_02xPZphjxGylEpUQLeDlk0w_Ij-NjGfaHBs/edit?usp=drivesdk"
+        },
+        "name": "={{ $('Encontrar planilha da proposta').item.json.name }}",
+        "sameFolder": "={{ false }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Encontrar pasta da proposta').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "86441944-69df-40e4-9ede-56eca793dc64",
+      "name": "Copiar arquivo modelo",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1216,
+        -160
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "pzdnBWdCozyNtzwn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Pega os dados do arquivo que acabou de ser copiado no Google Drive\nconst arquivoCopiado = $('Copiar arquivo modelo').first().json;\n\n// 2. Pega o texto gerado pela IA\nconst out = $('Gerar texto do slide da proposta').first().json;\nlet raw = '';\nif (out.content && Array.isArray(out.content.parts)) {\n  raw = out.content.parts.map(p => p.text || '').join('');\n} else {\n  raw = out.text || out.message || out.output || out;\n}\n\nlet aiData = {};\nif (typeof raw === 'string') {\n  const fence = String.fromCharCode(96).repeat(3);\n  const cleaned = raw.split(fence + 'json').join('').split(fence).join('').trim();\n  const start = cleaned.indexOf('{');\n  const end = cleaned.lastIndexOf('}');\n  if (start !== -1 && end !== -1) {\n    aiData = JSON.parse(cleaned.slice(start, end + 1));\n  }\n} else {\n  aiData = raw;\n}\n\n// 3. Retorna o ID do arquivo (presentationId) junto com todos os campos da IA achatados\nreturn [{\n  json: {\n    presentationId: arquivoCopiado.id || arquivoCopiado.fileId,\n    NOME_PROJETO: aiData.NOME_PROJETO || \"\",\n    NOME_EMPRESA: aiData.NOME_EMPRESA || \"\",\n    DATA_PROPOSTA: aiData.DATA_PROPOSTA || \"\",\n    RESPONSAVEL_COMERCIAL: aiData.RESPONSAVEL_COMERCIAL || \"\",\n    OBJETIVO_PROJETO: aiData.OBJETIVO_PROJETO || \"\",\n    RESULTADOS_CHAVE: aiData.RESULTADOS_CHAVE || \"\",\n    INDICADORES: aiData.INDICADORES || \"\",\n    DATA_INICIO: aiData.DATA_INICIO || \"\",\n    DATA_TERMINO: aiData.DATA_TERMINO || \"\",\n    DURACAO_DIAS: String(aiData.DURACAO_DIAS || \"\"),\n    EAP_RESUMIDA: aiData.EAP_RESUMIDA || \"\",\n    VALOR_TOTAL: aiData.VALOR_TOTAL || \"\"\n  }\n}];"
+      },
+      "id": "b496bae2-14d1-4de0-8643-0293fc656ed8",
+      "name": "Organizar os dados para o slide",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1168,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "replaceText",
+        "presentationId": "={{ $json.presentationId }}",
+        "textUi": {
+          "textValues": [
+            {
+              "text": "{{NOME_PROJETO}}",
+              "replaceText": "={{ $json.NOME_PROJETO }}"
+            },
+            {
+              "text": "{{NOME_EMPRESA}}",
+              "replaceText": "={{ $json.NOME_EMPRESA }}"
+            },
+            {
+              "text": "{{DATA_PROPOSTA}}",
+              "replaceText": "={{ $json.DATA_PROPOSTA }}"
+            },
+            {
+              "text": "{{RESPONSAVEL_COMERCIAL}}",
+              "replaceText": "={{ $json.RESPONSAVEL_COMERCIAL }}"
+            },
+            {
+              "text": "{{OBJETIVO_PROJETO}}",
+              "replaceText": "={{ $json.OBJETIVO_PROJETO }}"
+            },
+            {
+              "text": "{{RESULTADOS_CHAVE}}",
+              "replaceText": "={{ $json.RESULTADOS_CHAVE }}"
+            },
+            {
+              "text": "{{INDICADORES}}",
+              "replaceText": "={{ $json.INDICADORES }}"
+            },
+            {
+              "text": "{{DATA_INICIO}}",
+              "replaceText": "={{ $json.DATA_INICIO }}"
+            },
+            {
+              "text": "{{DATA_TERMINO}}",
+              "replaceText": "={{ $json.DATA_TERMINO }}"
+            },
+            {
+              "text": "{{DURACAO_DIAS}}",
+              "replaceText": "={{ $json.DURACAO_DIAS }}"
+            },
+            {
+              "text": "{{EAP_RESUMIDA}}",
+              "replaceText": "={{ $json.EAP_RESUMIDA }}"
+            },
+            {
+              "text": "{{VALOR_TOTAL}}",
+              "replaceText": "={{ $json.VALOR_TOTAL }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "56e185d4-e6ff-4821-9d8d-d81b3e12330a",
+      "name": "Preencher o modelo de slide de proposta",
+      "type": "n8n-nodes-base.googleSlides",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        -160
+      ],
+      "credentials": {
+        "googleSlidesOAuth2Api": {
+          "id": "XKqRUUgXYHAtRs3T",
+          "name": "Google Slides account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "trab.estherlins221@gmail.com",
+        "subject": "=Proposta Comercial - {{ $('Organizar os dados para o slide').item.json.NOME_PROJETO }}",
+        "message": "=<div style=\"font-family: 'Segoe UI', Helvetica, Arial, sans-serif; background-color: #f4f6f9; padding: 30px; color: #333333;\">\n  <div style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);\">\n    \n    <!-- Cabeçalho -->\n    <div style=\"background-color: #1a73e8; color: #ffffff; padding: 25px; text-align: center;\">\n      <h1 style=\"margin: 0; font-size: 22px; font-weight: 600;\">Proposta Comercial Pronta!</h1>\n    </div>\n\n    <!-- Corpo do Email -->\n    <div style=\"padding: 30px; line-height: 1.6;\">\n      <p style=\"font-size: 16px; margin-top: 0;\">Olá,</p>\n      \n      <p style=\"font-size: 15px;\">A proposta comercial para o projeto <strong>{{ $('Organizar os dados para o slide').item.json.NOME_PROJETO }}</strong> da empresa <strong>{{ $('Organizar os dados para o slide').item.json.NOME_EMPRESA }}</strong> foi gerada com sucesso.</p>\n\n      <div style=\"background-color: #f8f9fa; border-left: 4px solid #1a73e8; padding: 15px; margin: 25px 0; border-radius: 4px;\">\n        <p style=\"margin: 0; font-size: 14px; color: #555;\"><strong>Projeto:</strong> {{ $('Organizar os dados para o slide').item.json.NOME_PROJETO }}</p>\n        <p style=\"margin: 5px 0 0 0; font-size: 14px; color: #555;\"><strong>Cliente:</strong> {{ $('Organizar os dados para o slide').item.json.NOME_EMPRESA }}</p>\n      </div>\n\n      <p style=\"font-size: 15px;\">Você pode visualizar e editar a apresentação completa diretamente no Google Slides clicando no botão abaixo:</p>\n\n      <!-- Botão de Ação -->\n      <div style=\"text-align: center; margin: 30px 0;\">\n        <a href=\"https://docs.google.com/presentation/d/{{ $('Organizar os dados para o slide').item.json.presentationId }}/edit\" \n           target=\"_blank\" \n           style=\"background-color: #1a73e8; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 5px; font-weight: bold; font-size: 15px; display: inline-block;\">\n           Ver Apresentação da Proposta\n        </a>\n      </div>\n\n      <p style=\"font-size: 13px; color: #777; text-align: center;\">Se o botão não funcionar, use o link direto: <br>\n        <a href=\"https://docs.google.com/presentation/d/{{ $('Organizar os dados para o slide').item.json.presentationId }}/edit\" style=\"color: #1a73e8;\">\n          https://docs.google.com/presentation/d/{{ $('Organizar os dados para o slide').item.json.presentationId }}/edit\n        </a>\n      </p>\n    </div>\n\n    <!-- Rodapé -->\n    <div style=\"background-color: #f1f3f4; padding: 15px; text-align: center; font-size: 12px; color: #666; border-top: 1px solid #e0e0e0;\">\n      <p style=\"margin: 0;\">Este é um e-mail automático gerado pelo sistema de propostas comerciais.</p>\n    </div>\n\n  </div>\n</div>",
+        "options": {}
+      },
+      "id": "e8558aea-ba90-48bf-89a8-34f6945615e1",
+      "name": "Enviar o email com o slide",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1616,
+        -160
+      ],
+      "webhookId": "253eca9c-c3b8-4ed9-9ad3-dca788039ba8",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "wo4yoj4noHc2NITm",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Detectar mudança de status da proposta": {
+      "main": [
+        [
+          {
+            "node": "Verificar status APROVADO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar status APROVADO": {
+      "main": [
+        [
+          {
+            "node": "Coletar dados da proposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Coletar dados da proposta": {
+      "main": [
+        [
+          {
+            "node": "Encontrar planilha da proposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Encontrar planilha da proposta": {
+      "main": [
+        [
+          {
+            "node": "Coletar dados da PRECIFICAÇÃO",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Coletar dados do CRONOGRAMA",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Coletar dados da EAP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Coletar dados da PRECIFICAÇÃO": {
+      "main": [
+        [
+          {
+            "node": "Unificar as 3 abas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Coletar dados do CRONOGRAMA": {
+      "main": [
+        [
+          {
+            "node": "Unificar as 3 abas",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Coletar dados da EAP": {
+      "main": [
+        [
+          {
+            "node": "Unificar as 3 abas",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Unificar as 3 abas": {
+      "main": [
+        [
+          {
+            "node": "Unificar os dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unificar os dados": {
+      "main": [
+        [
+          {
+            "node": "Gerar texto do slide da proposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gerar texto do slide da proposta": {
+      "main": [
+        [
+          {
+            "node": "Encontrar pasta da proposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Encontrar pasta da proposta": {
+      "main": [
+        [
+          {
+            "node": "Copiar arquivo modelo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copiar arquivo modelo": {
+      "main": [
+        [
+          {
+            "node": "Organizar os dados para o slide",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Organizar os dados para o slide": {
+      "main": [
+        [
+          {
+            "node": "Preencher o modelo de slide de proposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preencher o modelo de slide de proposta": {
+      "main": [
+        [
+          {
+            "node": "Enviar o email com o slide",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "1dcb0a99-d268-4a76-875d-bd3cc95326e1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f7e9b6f8796922a926ddfd2c29485e24d7fa22ff2bfe3ef6211e6ecb89dd6cc2"
+  },
+  "nodeGroups": [
+    {
+      "id": "913f913d-015c-4f01-9e84-e67e6629533e",
+      "name": "Reunir dados da proposta",
+      "nodeIds": [
+        "b95c631c-8870-43fe-8981-a4292685ad73",
+        "dd771b16-9239-4555-b7f5-0b784108d01d",
+        "70f8d2b4-8046-48ef-937e-6610faefa941",
+        "2d009194-9465-4d0f-8ada-8c586ac98ee2",
+        "ecfd55b9-6124-4849-920d-a016abf6abf0",
+        "f3415795-0bde-4cf9-8bb5-35bb681f9ba2",
+        "b7bd0217-ab55-4ab4-b1de-1f11d419bf0e"
+      ],
+      "description": "Parte da tarefa aprovada no ClickUp, lê as abas de precificação, cronograma e EAP e consolida tudo em um único conjunto de dados"
+    },
+    {
+      "id": "3dab0510-ebe5-4472-a6d0-eca853d7f750",
+      "name": "Redigir e preparar slide",
+      "nodeIds": [
+        "7babbc8e-2d88-4d88-aebb-dd8257c87b76",
+        "37c3c8d9-45d0-4e6b-96af-4b84cee1da94",
+        "86441944-69df-40e4-9ede-56eca793dc64"
+      ],
+      "description": "A IA escreve os textos da proposta, localiza a pasta do cliente no Drive e salva ali uma cópia do modelo de slide"
+    },
+    {
+      "id": "d2eaeba0-a15f-455e-a1da-484782e108a6",
+      "name": "Preencher e entregar proposta",
+      "nodeIds": [
+        "b496bae2-14d1-4de0-8643-0293fc656ed8",
+        "56e185d4-e6ff-4821-9d8d-d81b3e12330a",
+        "e8558aea-ba90-48bf-89a8-34f6945615e1"
+      ],
+      "description": "Troca os marcadores do slide pelos textos gerados e envia por e-mail o link da apresentação pronta"
+    }
+  ],
+  "id": "UZAussOlYXhJeVf5",
+  "tags": []
+}
