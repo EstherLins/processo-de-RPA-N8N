@@ -1,1 +1,1448 @@
-
+{
+  "name": "Criação da estrutura de projeto",
+  "nodes": [
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "team": "90131122731",
+        "events": [
+          "taskStatusUpdated"
+        ],
+        "filters": {
+          "listId": "901329222605"
+        }
+      },
+      "id": "91a73c59-9bba-4906-9776-5313959da59d",
+      "name": "Receber mudança de status",
+      "type": "n8n-nodes-base.clickUpTrigger",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        -720
+      ],
+      "webhookId": "8c67f1a2-ba3b-4d89-a3f8-5935a804b07e",
+      "credentials": {
+        "clickUpOAuth2Api": {
+          "id": "riJEP96Y9DAkmCVU",
+          "name": "ClickUp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "status-vendido",
+              "leftValue": "={{ $json.history_items[0].after.status }}",
+              "rightValue": "vendido",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "6241d4a4-0c6e-4e29-877c-61c20ac64ea0",
+      "name": "Verificar status vendido",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        112,
+        -720
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "get",
+        "id": "={{ $json.task_id }}"
+      },
+      "id": "a73eab0e-9ede-47da-8e7b-dc6ceeea8096",
+      "name": "Coletar dados do projeto",
+      "type": "n8n-nodes-base.clickUp",
+      "typeVersion": 1,
+      "position": [
+        336,
+        -720
+      ],
+      "credentials": {
+        "clickUpOAuth2Api": {
+          "id": "riJEP96Y9DAkmCVU",
+          "name": "ClickUp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "servico",
+              "name": "SERVICO",
+              "type": "string",
+              "value": "={{ (() => { const field = $json.custom_fields.find(c => c.name === 'Serviço'); if (!field) return 'Pesquisa de Mercado'; const opt = field.type_config?.options?.find(o => o.orderindex === field.value); return opt ? opt.name : 'Pesquisa de Mercado'; })() }}"
+            },
+            {
+              "id": "nome-projeto",
+              "name": "NOME_EMPRESA",
+              "type": "string",
+              "value": "={{ $json.custom_fields.find(c => c.name === 'Empresa' || c.name === 'Nome da Empresa')?.value || \"Doce Raiz Alimentos\" }}"
+            },
+            {
+              "id": "dfccf1b3-5339-4c25-bd0e-06f5dec15869",
+              "name": "CLIENTE",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "49ccefad-cc0a-4278-9a47-673c660e0a8e",
+              "name": "PORTFOLIO",
+              "value": "={{ $json.custom_fields.find(c => c.name === 'Categoria do Portifílio')?.type_config?.options?.find(o => o.orderindex === $json.custom_fields.find(c => c.name === 'Categoria do Portifílio')?.value)?.name || \"Estratégico\" }}",
+              "type": "string"
+            },
+            {
+              "id": "dab8c6c9-ca17-41d5-aa6a-18a4d3ab5534",
+              "name": "COMPLEXIDADE",
+              "value": "={{ $json.custom_fields.find(c => c.name === 'Complexidade')?.type_config?.options?.find(o => o.orderindex === $json.custom_fields.find(c => c.name === 'Complexidade')?.value)?.name || \"Média\" }}",
+              "type": "string"
+            },
+            {
+              "id": "51e67111-3ec7-4ad5-af26-1018125ed6a0",
+              "name": "RESPONSAVEL_COMERCIAL",
+              "value": "={{ $json.custom_fields.find(c => c.name === 'Responsável comercial')?.value?.[0]?.username || $json.creator.username }}",
+              "type": "string"
+            },
+            {
+              "id": "6d660628-535b-4725-9b1c-ed43e73753f2",
+              "name": "DATA_INICIO",
+              "value": "={{ $now.format('dd/MM/yyyy') }}",
+              "type": "string"
+            },
+            {
+              "id": "c40cc494-6e91-49e4-ad1d-f247098893c1",
+              "name": "DATA_TERMINO",
+              "value": "={{ (() => {\n  const campoData = $json.custom_fields.find(c => c.name === 'Prazo máximo desejado pelo cliente' && c.type === 'date');\n  if (!campoData || !campoData.value) return \"\";\n  const dataObj = new Date(Number(campoData.value));\n  return dataObj.toLocaleDateString('pt-BR');\n})() }}",
+              "type": "string"
+            },
+            {
+              "id": "81ac0feb-69ab-4ada-b467-3294db957f7d",
+              "name": "CONTEXTO_EMPRESA",
+              "value": "={{ $json.custom_fields.find(c => c.name === 'Contexto da empresa')?.value }}",
+              "type": "string"
+            },
+            {
+              "id": "ffc239c6-5524-4b73-95bd-aa7852dd0e27",
+              "name": "PROBLEMA",
+              "value": "={{ $json.custom_fields.find(c => c.name === 'Problema')?.value }}",
+              "type": "string"
+            },
+            {
+              "id": "ea33e4f0-e10c-4ebc-876a-c4535da6ffea",
+              "name": "OBJETIVO_PROJETO",
+              "value": "={{ $json.custom_fields.find(c => c.name === 'Objetivo do projeto')?.value }}",
+              "type": "string"
+            },
+            {
+              "id": "bf51a621-b50e-47e7-9065-3ffb4e285a9a",
+              "name": "RESULTADOS_CHAVE",
+              "value": "={{ $json.custom_fields.find(c => c.name === 'Resultados-chave esperados' && c.value)?.value }}",
+              "type": "string"
+            },
+            {
+              "id": "135b6ea2-7d38-44a2-bf73-4245bf4c1da0",
+              "name": "INDICADORES",
+              "value": "={{ $json.custom_fields.find(c => c.name === 'Indicadores que o cliente já acompanha')?.value }}",
+              "type": "string"
+            },
+            {
+              "id": "aab15fc6-fdc3-4df9-8092-defd9d7da690",
+              "name": "=ENTREGAS_ESPERADAS",
+              "value": "={{ $json.custom_fields.find(c => c.name === 'Entregas esperadas' && c.value)?.value }}",
+              "type": "string"
+            },
+            {
+              "id": "d27a94ab-eb56-48a3-a0eb-79b77b7de97d",
+              "name": "FORA_ESCOPO",
+              "value": "={{ $json.custom_fields.find(c => c.name === 'O que NÃO está incluído no escopo')?.value }}",
+              "type": "string"
+            },
+            {
+              "id": "17ed588a-057c-47f3-ae0f-83734b82a90f",
+              "name": "COMBINADOS",
+              "value": "={{ $json.custom_fields.find(c => c.name === 'Combinados')?.value }}",
+              "type": "string"
+            },
+            {
+              "id": "419504ea-a90f-4b7b-a99a-32db97496d73",
+              "name": "FERRAMENTAS_CLIENTE",
+              "value": "={{ $json.custom_fields.find(c => c.name === 'Ferramentas e sistemas do cliente')?.value }}",
+              "type": "string"
+            },
+            {
+              "id": "b4789016-3786-4223-bedd-38e81d6e8cec",
+              "name": "DURACAO_DIAS",
+              "value": "={{ Math.round((Math.abs(Number($json.custom_fields.find(c => c.name === 'Prazo máximo desejado pelo cliente' && c.type === 'date')?.value || 0) - Number($json.custom_fields.find(c => c.name === 'Início previsto' && c.type === 'date')?.value || 0)) / (1000 * 60 * 60 * 24)) * (5/7)) || 45 }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "b0a56a96-575f-471f-a325-2d7c1f109610",
+      "name": "Preparar Dados",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        560,
+        -720
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $json.NOME_EMPRESA }} - {{ $json.SERVICO }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1dMjdz2RavJf3SzUKT8C4Vf3mby_jMa5q"
+        },
+        "options": {}
+      },
+      "id": "13800465-12c0-4428-ad6d-8e1583adb799",
+      "name": "Criar pasta do cliente",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        832,
+        -720
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "pzdnBWdCozyNtzwn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "00 - Comercial",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Criar pasta do cliente').item.json.id }}"
+        },
+        "options": {}
+      },
+      "id": "b4ce5cbb-5e20-4b10-81c1-43741961cd6a",
+      "name": "Criar Subpasta Comercial",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1056,
+        -720
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "pzdnBWdCozyNtzwn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "Proposta",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Criar Subpasta Comercial').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "fb053c4f-fff6-45ab-aadc-fb6602d20ad4",
+      "name": "Criar Subpasta Proposta",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1280,
+        -720
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "pzdnBWdCozyNtzwn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "01 - Documentação",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Criar pasta do cliente').item.json.id }}"
+        },
+        "options": {}
+      },
+      "id": "8aeb7303-e422-405b-b18e-97ebf8c06769",
+      "name": "Criar Subpasta Documentação",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1504,
+        -720
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "pzdnBWdCozyNtzwn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "Contrato",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Criar Subpasta Documentação').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "50073328-899a-4614-be83-7494ef74acef",
+      "name": "Criar Subpasta Contrato",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1728,
+        -720
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "pzdnBWdCozyNtzwn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "Linha de Base",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Criar Subpasta Documentação').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "24371ef2-95ac-40f0-9b6c-6f615d8769a2",
+      "name": "Criar Subpasta Linha de Base",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1952,
+        -720
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "pzdnBWdCozyNtzwn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "TAP",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Criar Subpasta Documentação').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "c059ccf3-39ea-4957-8653-638629ec0dac",
+      "name": "Criar Subpasta TAP",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2176,
+        -720
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "pzdnBWdCozyNtzwn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "TEP",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Criar Subpasta Documentação').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "70bb6db3-6de6-4195-8138-780637ea5baa",
+      "name": "Criar Subpasta TEP",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2400,
+        -720
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "pzdnBWdCozyNtzwn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "02 - Etapas",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Criar pasta do cliente').item.json.id }}"
+        },
+        "options": {}
+      },
+      "id": "ab964fa0-4d78-4c65-842b-ede908421cb3",
+      "name": "Criar Subpasta Etapas",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2624,
+        -720
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "pzdnBWdCozyNtzwn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "03 - Entregáveis Finais",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Criar pasta do cliente').item.json.id }}"
+        },
+        "options": {}
+      },
+      "id": "452815d2-d186-4b38-a490-ee90e1f7e122",
+      "name": "Criar Subpasta Entregáveis Finais",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2848,
+        -720
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "pzdnBWdCozyNtzwn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "1AFnOmNEVfluThClxbn1Qfq5SNzu-C74PWc8b0tmnMiA",
+          "mode": "list",
+          "cachedResultName": "Modelo TAP - Termo de Abertura do Projeto",
+          "cachedResultUrl": "https://docs.google.com/document/d/1AFnOmNEVfluThClxbn1Qfq5SNzu-C74PWc8b0tmnMiA/edit?usp=drivesdk"
+        },
+        "name": "=TAP - {{ $('Preparar Dados').item.json.NOME_EMPRESA }}",
+        "sameFolder": false,
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Criar Subpasta TAP').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "a9794ec4-8155-481c-be81-3b4ef9539178",
+      "name": "Copiar Modelo TAP",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        3120,
+        -720
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "pzdnBWdCozyNtzwn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "={{ $('Preparar Dados').item.json.NOME_EMPRESA }}",
+        "limit": 1,
+        "filter": {
+          "whatToSearch": "files",
+          "fileTypes": [
+            "application/vnd.google-apps.presentation"
+          ]
+        },
+        "options": {}
+      },
+      "id": "5a350555-9008-498a-8ac0-921093e44fb2",
+      "name": "Buscar Slide de Proposta",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        3344,
+        -720
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "pzdnBWdCozyNtzwn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Buscar Slide de Proposta').first().json.id }}",
+          "mode": "id"
+        },
+        "name": "=Proposta - {{ $('Preparar Dados').item.json.NOME_EMPRESA }}",
+        "sameFolder": false,
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Criar Subpasta Proposta').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "d644a0f8-e828-4b7e-ae8f-622ea7c89c66",
+      "name": "Copiar Slide para Proposta",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        3568,
+        -720
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "pzdnBWdCozyNtzwn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "={{ $('Preparar Dados').item.json.NOME_EMPRESA }}",
+        "limit": 1,
+        "filter": {
+          "whatToSearch": "files",
+          "fileTypes": [
+            "application/vnd.google-apps.spreadsheet"
+          ]
+        },
+        "options": {}
+      },
+      "id": "5710231f-2b90-4875-92cd-1895693c109c",
+      "name": "Buscar Planilha da Proposta",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        3792,
+        -720
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "pzdnBWdCozyNtzwn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Buscar Planilha da Proposta').item.json.id }}"
+        },
+        "name": "=Linha de Base - {{ $('Preparar Dados').item.json.NOME_EMPRESA }}",
+        "sameFolder": false,
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Criar Subpasta Linha de Base').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "c44d6b75-984c-4945-a4bc-f3abb50c8513",
+      "name": "Copiar Planilha para Linha de Base",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        4016,
+        -720
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "pzdnBWdCozyNtzwn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "EAP",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "bd02d8ab-30d4-4bb1-be2b-662291ebd0dc",
+      "name": "Ler EAP da Linha de Base",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        4272,
+        -720
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KpJLMi240uPpQNeZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Monta a EAP exatamente como esta na planilha Linha de Base (coluna NOME DA ETAPA)\nconst EAP_ARRAY = $input.all()\n  .map(i => String(i.json['NOME DA ETAPA'] ?? '').trim())\n  .filter(Boolean);\nconst EAP_RESUMIDA = EAP_ARRAY.join('\\n');\nreturn [{ json: { EAP_RESUMIDA, EAP_ARRAY } }];"
+      },
+      "id": "d02bd55a-1601-49a7-82a5-ff5a83e404c8",
+      "name": "Preparar etapas da EAP",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4496,
+        -720
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $('Copiar Modelo TAP').item.json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "replaceAll",
+              "text": "{{DATA_TAP}}",
+              "replaceText": "={{ $now.format(\"dd/MM/yyyy\") }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{NOME_PROJETO}}",
+              "replaceText": "={{ $('Preparar Dados').item.json.NOME_PROJETO ?? \"\" }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{NOME_EMPRESA}}",
+              "replaceText": "={{ $('Preparar Dados').item.json.NOME_EMPRESA ?? \"\" }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{CLIENTE}}",
+              "replaceText": "={{ $('Preparar Dados').item.json.CLIENTE }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{SERVICO}}",
+              "replaceText": "={{ $('Preparar Dados').item.json.SERVICO ?? \"\" }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{PORTFOLIO}}",
+              "replaceText": "={{ $('Preparar Dados').item.json.PORTFOLIO ?? \"\" }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{COMPLEXIDADE}}",
+              "replaceText": "={{ $('Preparar Dados').item.json.COMPLEXIDADE ?? \"\" }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{RESPONSAVEL_COMERCIAL}}",
+              "replaceText": "={{ $('Preparar Dados').item.json.RESPONSAVEL_COMERCIAL ?? \"\" }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{CONTEXTO_EMPRESA}}",
+              "replaceText": "={{ $('Preparar Dados').item.json.CONTEXTO_EMPRESA ?? \"\" }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{PROBLEMA}}",
+              "replaceText": "={{ $('Preparar Dados').item.json.PROBLEMA ?? \"\" }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{OBJETIVO_PROJETO}}",
+              "replaceText": "={{ $('Preparar Dados').item.json.OBJETIVO_PROJETO ?? \"\" }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{RESULTADOS_CHAVE}}",
+              "replaceText": "={{ $('Preparar Dados').item.json.RESULTADOS_CHAVE ?? \"\" }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{INDICADORES}}",
+              "replaceText": "={{ $('Preparar Dados').item.json.INDICADORES ?? \"\" }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{ENTREGAS_ESPERADAS}}",
+              "replaceText": "={{ $('Preparar Dados').item.json.ENTREGAS_ESPERADAS ?? \"\" }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{FORA_ESCOPO}}",
+              "replaceText": "={{ $('Preparar Dados').item.json.FORA_ESCOPO ?? \"\" }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{COMBINADOS}}",
+              "replaceText": "={{ $('Preparar Dados').item.json.COMBINADOS ?? \"\" }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{FERRAMENTAS_CLIENTE}}",
+              "replaceText": "={{ $('Preparar Dados').item.json.FERRAMENTAS_CLIENTE ?? \"\" }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{DATA_INICIO}}",
+              "replaceText": "={{ $('Preparar Dados').item.json.DATA_INICIO ?? \"\" }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{DATA_TERMINO}}",
+              "replaceText": "={{ $('Preparar Dados').item.json.DATA_TERMINO ?? \"\" }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{DURACAO_DIAS}}",
+              "replaceText": "={{ $('Preparar Dados').item.json.DURACAO_DIAS ?? \"\" }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{EAP_RESUMIDA}}",
+              "replaceText": "={{ $('Preparar etapas da EAP').item.json.EAP_RESUMIDA }}",
+              "matchCase": true
+            }
+          ]
+        }
+      },
+      "id": "49c5e580-8105-4dc4-8816-85648c6960d4",
+      "name": "Preencher Modelo TAP",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        4720,
+        -720
+      ],
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "5xWDekLRnLfHiVtj",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.clickup.com/api/v2/folder/901319566776/list",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "clickUpOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"{{ $('Preparar Dados').item.json.NOME_EMPRESA }} - {{ $('Preparar Dados').item.json.SERVICO }}\"\n}",
+        "options": {}
+      },
+      "id": "f348a2b4-843b-43f5-8c48-102489f45d43",
+      "name": "Criar Lista do Projeto no ClickUp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        4992,
+        -720
+      ],
+      "credentials": {
+        "clickUpOAuth2Api": {
+          "id": "riJEP96Y9DAkmCVU",
+          "name": "ClickUp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let eapOriginal = [];\ntry {\n  const prep = $('Preparar etapas da EAP').first().json;\n  eapOriginal = Array.isArray(prep.EAP_ARRAY) ? prep.EAP_ARRAY : [];\n} catch (e) {\n  eapOriginal = [];\n}\n\nlet estruturaEAP = [];\nlet macroAtual = null;\n\n// Varre dinamicamente e separa macroetapas de subetapas\neapOriginal.forEach(item => {\n  item = String(item).trim();\n  if (!item) return;\n\n  // Identifica se é macroetapa (número inteiro ex: \"1. \", \"2 - \") e não decimal (ex: \"1.1\")\n  const isMacro = /^\\d+\\s*[\\.\\-]\\s+[^\\.]/.test(item) && !/^\\d+\\.\\d+/.test(item);\n\n  if (isMacro) {\n    macroAtual = {\n      macro: item,\n      subetapas: []\n    };\n    estruturaEAP.push(macroAtual);\n  } else if (macroAtual) {\n    macroAtual.subetapas.push(item);\n  }\n});\n\n// Retorna para o n8n criar as pastas e as tarefas no ClickUp\nreturn estruturaEAP.map(item => ({ json: item }));"
+      },
+      "id": "47c22935-3095-4acf-87b5-0f56dc0e514a",
+      "name": "Separar etapas e subetapas da EAP",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5216,
+        -720
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $json.macro }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Criar Subpasta Etapas').first().json.id }}"
+        },
+        "options": {}
+      },
+      "id": "51c760b9-6dc7-4130-a69a-cd1e2c372663",
+      "name": "Criar pastas das etapas da EAP",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        5504,
+        -720
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "pzdnBWdCozyNtzwn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "team": "90131122731",
+        "space": "90134633693",
+        "folderless": "={{ false }}",
+        "folder": "901319566776",
+        "list": "={{ $('Criar Lista do Projeto no ClickUp').first().json.id }}",
+        "name": "={{ $('Separar etapas e subetapas da EAP').all()[$itemIndex].json.macro }}",
+        "additionalFields": {}
+      },
+      "id": "2f394efc-1174-4396-bb7e-98a301d228ea",
+      "name": "Criar Tarefa Pai no ClickUp",
+      "type": "n8n-nodes-base.clickUp",
+      "typeVersion": 1,
+      "position": [
+        5728,
+        -720
+      ],
+      "credentials": {
+        "clickUpOAuth2Api": {
+          "id": "riJEP96Y9DAkmCVU",
+          "name": "ClickUp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "parent-id",
+              "name": "parentId",
+              "type": "string",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "id": "subetapas-arr",
+              "name": "subetapas",
+              "type": "array",
+              "value": "={{ $('Separar etapas e subetapas da EAP').all()[$itemIndex].json.subetapas }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2904eef9-e8de-4834-9a38-601fbea67e27",
+      "name": "Montar Subetapas",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5952,
+        -720
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "subetapas",
+        "include": "selectedOtherFields",
+        "fieldsToInclude": "parentId",
+        "options": {}
+      },
+      "id": "e20e82c8-273a-4405-91b5-4ad8b9212b04",
+      "name": "Separar Subetapas",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1.1,
+      "position": [
+        6176,
+        -720
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "team": "90131122731",
+        "space": "90134633693",
+        "folder": "901319566776",
+        "list": "={{ $('Criar Lista do Projeto no ClickUp').first().json.id }}",
+        "name": "={{ $json.subetapas }}",
+        "additionalFields": {
+          "parentId": "={{ $json.parentId }}"
+        }
+      },
+      "id": "8ce1ab81-6e14-40ab-9d57-55ff5ee6cb7d",
+      "name": "Criar Subtarefa no ClickUp",
+      "type": "n8n-nodes-base.clickUp",
+      "typeVersion": 1,
+      "position": [
+        6400,
+        -720
+      ],
+      "credentials": {
+        "clickUpOAuth2Api": {
+          "id": "riJEP96Y9DAkmCVU",
+          "name": "ClickUp account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Receber mudança de status": {
+      "main": [
+        [
+          {
+            "node": "Verificar status vendido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar status vendido": {
+      "main": [
+        [
+          {
+            "node": "Coletar dados do projeto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Coletar dados do projeto": {
+      "main": [
+        [
+          {
+            "node": "Preparar Dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Dados": {
+      "main": [
+        [
+          {
+            "node": "Criar pasta do cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar pasta do cliente": {
+      "main": [
+        [
+          {
+            "node": "Criar Subpasta Comercial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Subpasta Comercial": {
+      "main": [
+        [
+          {
+            "node": "Criar Subpasta Proposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Subpasta Proposta": {
+      "main": [
+        [
+          {
+            "node": "Criar Subpasta Documentação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Subpasta Documentação": {
+      "main": [
+        [
+          {
+            "node": "Criar Subpasta Contrato",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Subpasta Contrato": {
+      "main": [
+        [
+          {
+            "node": "Criar Subpasta Linha de Base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Subpasta Linha de Base": {
+      "main": [
+        [
+          {
+            "node": "Criar Subpasta TAP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Subpasta TAP": {
+      "main": [
+        [
+          {
+            "node": "Criar Subpasta TEP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Subpasta TEP": {
+      "main": [
+        [
+          {
+            "node": "Criar Subpasta Etapas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Subpasta Etapas": {
+      "main": [
+        [
+          {
+            "node": "Criar Subpasta Entregáveis Finais",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Subpasta Entregáveis Finais": {
+      "main": [
+        [
+          {
+            "node": "Copiar Modelo TAP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copiar Modelo TAP": {
+      "main": [
+        [
+          {
+            "node": "Buscar Slide de Proposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Slide de Proposta": {
+      "main": [
+        [
+          {
+            "node": "Copiar Slide para Proposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copiar Slide para Proposta": {
+      "main": [
+        [
+          {
+            "node": "Buscar Planilha da Proposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Planilha da Proposta": {
+      "main": [
+        [
+          {
+            "node": "Copiar Planilha para Linha de Base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copiar Planilha para Linha de Base": {
+      "main": [
+        [
+          {
+            "node": "Ler EAP da Linha de Base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ler EAP da Linha de Base": {
+      "main": [
+        [
+          {
+            "node": "Preparar etapas da EAP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar etapas da EAP": {
+      "main": [
+        [
+          {
+            "node": "Preencher Modelo TAP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preencher Modelo TAP": {
+      "main": [
+        [
+          {
+            "node": "Criar Lista do Projeto no ClickUp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Lista do Projeto no ClickUp": {
+      "main": [
+        [
+          {
+            "node": "Separar etapas e subetapas da EAP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separar etapas e subetapas da EAP": {
+      "main": [
+        [
+          {
+            "node": "Criar pastas das etapas da EAP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar pastas das etapas da EAP": {
+      "main": [
+        [
+          {
+            "node": "Criar Tarefa Pai no ClickUp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Tarefa Pai no ClickUp": {
+      "main": [
+        [
+          {
+            "node": "Montar Subetapas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar Subetapas": {
+      "main": [
+        [
+          {
+            "node": "Separar Subetapas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separar Subetapas": {
+      "main": [
+        [
+          {
+            "node": "Criar Subtarefa no ClickUp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "022c60ad-3c42-4633-99e0-c91707adf1a7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f7e9b6f8796922a926ddfd2c29485e24d7fa22ff2bfe3ef6211e6ecb89dd6cc2"
+  },
+  "nodeGroups": [
+    {
+      "id": "41d8b959-99ff-49ba-a632-59d13fbd6f6d",
+      "name": "Validar projeto vendido",
+      "nodeIds": [
+        "6241d4a4-0c6e-4e29-877c-61c20ac64ea0",
+        "a73eab0e-9ede-47da-8e7b-dc6ceeea8096",
+        "b0a56a96-575f-471f-a325-2d7c1f109610"
+      ],
+      "description": "Quando a tarefa do ClickUp vira VENDIDO, coleta e organiza os dados do projeto"
+    },
+    {
+      "id": "9e184ef4-7273-450e-9344-b55790fda706",
+      "name": "Criar pastas do projeto",
+      "nodeIds": [
+        "13800465-12c0-4428-ad6d-8e1583adb799",
+        "b4ce5cbb-5e20-4b10-81c1-43741961cd6a",
+        "fb053c4f-fff6-45ab-aadc-fb6602d20ad4",
+        "8aeb7303-e422-405b-b18e-97ebf8c06769",
+        "50073328-899a-4614-be83-7494ef74acef",
+        "24371ef2-95ac-40f0-9b6c-6f615d8769a2",
+        "c059ccf3-39ea-4957-8653-638629ec0dac",
+        "70bb6db3-6de6-4195-8138-780637ea5baa",
+        "ab964fa0-4d78-4c65-842b-ede908421cb3",
+        "452815d2-d186-4b38-a490-ee90e1f7e122"
+      ],
+      "description": "Cria no Drive a pasta do cliente e as subpastas Comercial, Documentação, Etapas e Entregáveis"
+    },
+    {
+      "id": "30397e59-849b-42c2-a5d9-c489bddca2f9",
+      "name": "Copiar modelos de documentos",
+      "nodeIds": [
+        "a9794ec4-8155-481c-be81-3b4ef9539178",
+        "5a350555-9008-498a-8ac0-921093e44fb2",
+        "d644a0f8-e828-4b7e-ae8f-622ea7c89c66",
+        "5710231f-2b90-4875-92cd-1895693c109c",
+        "c44d6b75-984c-4945-a4bc-f3abb50c8513"
+      ],
+      "description": "Copia o modelo TAP, o slide da proposta e a planilha da linha de base para as pastas certas"
+    },
+    {
+      "id": "b155d020-240a-4852-b525-c835a8897116",
+      "name": "Gerar termo de abertura",
+      "nodeIds": [
+        "bd02d8ab-30d4-4bb1-be2b-662291ebd0dc",
+        "d02bd55a-1601-49a7-82a5-ff5a83e404c8",
+        "49c5e580-8105-4dc4-8816-85648c6960d4"
+      ],
+      "description": "Lê a EAP da planilha e preenche o TAP com os dados do projeto e as etapas"
+    },
+    {
+      "id": "4997d0cb-1e7d-4684-8900-11f86b7db2b8",
+      "name": "Criar etapas da EAP no Drive e ClickUp",
+      "nodeIds": [
+        "f348a2b4-843b-43f5-8c48-102489f45d43",
+        "47c22935-3095-4acf-87b5-0f56dc0e514a",
+        "51c760b9-6dc7-4130-a69a-cd1e2c372663",
+        "2f394efc-1174-4396-bb7e-98a301d228ea",
+        "2904eef9-e8de-4834-9a38-601fbea67e27",
+        "e20e82c8-273a-4405-91b5-4ad8b9212b04",
+        "8ce1ab81-6e14-40ab-9d57-55ff5ee6cb7d"
+      ],
+      "description": "Cria a lista no ClickUp, as pastas das etapas no Drive e as tarefas e subtarefas da EAP"
+    }
+  ],
+  "id": "BPnrVwyV24uZwtCq",
+  "tags": []
+}
