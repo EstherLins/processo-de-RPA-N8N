@@ -1,1 +1,780 @@
-
+{
+  "name": "Criação de Proposta",
+  "nodes": [
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "team": "90131122731",
+        "events": [
+          "taskCreated"
+        ],
+        "filters": {
+          "listId": "901329222605"
+        }
+      },
+      "id": "95a282a8-da78-4945-a755-d4b79ac2a342",
+      "name": "GATILHO - Receber proposta solicitada pelo forms",
+      "type": "n8n-nodes-base.clickUpTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -240
+      ],
+      "webhookId": "ca9f6c55-37ea-43e8-973c-39d9ee9edd73",
+      "credentials": {
+        "clickUpOAuth2Api": {
+          "id": "riJEP96Y9DAkmCVU",
+          "name": "ClickUp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "get",
+        "id": "={{ $json.task_id }}"
+      },
+      "id": "46f9049b-7b3d-4f53-95e4-4bc63fa561a3",
+      "name": "Obter dados da resposta do forms",
+      "type": "n8n-nodes-base.clickUp",
+      "typeVersion": 1,
+      "position": [
+        224,
+        -240
+      ],
+      "credentials": {
+        "clickUpOAuth2Api": {
+          "id": "riJEP96Y9DAkmCVU",
+          "name": "ClickUp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pega os dados do item anterior (que veio do \"Obter Tarefa\")\nconst item = $input.item.json;\n\nconst nomeCliente = item.name ? item.name.trim() : \"Cliente não informado\";\nconst customFields = item.custom_fields || [];\n\nfunction formataData(timestamp) {\n  if (!timestamp || isNaN(timestamp)) return \"Não informado\";\n  const data = new Date(Number(timestamp));\n  return data.toLocaleDateString('pt-BR');\n}\n\nfunction nomeOpcao(field) {\n  const v = field.value;\n  if (v === undefined || v === null || v === '') return \"Não informado\";\n  const opcoes = (field.type_config && field.type_config.options) || [];\n  const op = opcoes.find(o => o.orderindex === v || o.id === v);\n  return op ? op.name : String(v);\n}\n\nlet dadosForm = {\n  servico: \"Não informado\",\n  categoriaPortfolio: \"Não informado\",\n  complexidade: \"Não informado\",\n  nomeEmpresa: \"Não informado\",\n  porteEmpresa: \"Não informado\",\n  ramoAtividade: \"Não informado\",\n  faturamento: \"Não informado\",\n  objetivoProjeto: \"Não informado\",\n  contextoEmpresa: \"Não informado\",\n  problema: \"Não informado\",\n  combinados: \"Não informado\",\n  resultadosChave: \"Não informado\",\n  indicadoresCliente: \"Não informado\",\n  entregasEsperadas: \"Não informado\",\n  foraEscopo: \"Não informado\",\n  ferramentasSistemas: \"Não informado\",\n  inicioPrevisto: \"Não informado\",\n  prazoCliente: \"Não informado\",\n  orcamento: \"Não informado\",\n  responsavelComercial: \"Não informado\",\n  prazoAprovacao: \"Não informado\"\n};\n\nlet responsavelCustom = null;\n\ncustomFields.forEach(field => {\n  const nome = field.name ? field.name.trim().toLowerCase() : \"\";\n  let valor = field.value !== undefined && field.value !== null ? field.value : (field.text_value || \"Não informado\");\n\n  if (field.type === 'drop_down') {\n    valor = nomeOpcao(field);\n  } else if (typeof valor === 'string') {\n    valor = valor.trim();\n  }\n\n  if (nome.includes(\"faturamento\")) {\n    dadosForm.faturamento = field.type === 'drop_down' ? nomeOpcao(field) : valor;\n  }\n  else if (nome.includes(\"serviço\")) {\n    dadosForm.servico = valor;\n  }\n  else if (nome.includes(\"categoria\") || nome.includes(\"portifólio\") || nome.includes(\"portfolio\")) {\n    dadosForm.categoriaPortfolio = valor;\n  }\n  else if (nome.includes(\"complexidade\")) {\n    dadosForm.complexidade = valor;\n  }\n  else if (nome.includes(\"empresa\") && !nome.includes(\"porte\") && !nome.includes(\"contexto\") && !nome.includes(\"faturamento\")) {\n    dadosForm.nomeEmpresa = valor;\n  }\n  else if (nome.includes(\"contexto\")) {\n    dadosForm.contextoEmpresa = valor;\n  }\n  else if (nome.includes(\"porte\")) {\n    dadosForm.porteEmpresa = valor;\n  }\n  else if (nome.includes(\"ramo\") || nome.includes(\"atividade\")) {\n    dadosForm.ramoAtividade = valor;\n  }\n  else if (nome.includes(\"objetivo\")) {\n    dadosForm.objetivoProjeto = valor;\n  }\n  else if (nome.includes(\"problema\")) {\n    dadosForm.problema = valor;\n  }\n  else if (nome.includes(\"combinado\")) {\n    dadosForm.combinados = valor;\n  }\n  else if (nome.includes(\"resultado\") || nome.includes(\"chave\")) {\n    dadosForm.resultadosChave = valor;\n  }\n  else if (nome.includes(\"indicador\")) {\n    dadosForm.indicadoresCliente = valor;\n  }\n  else if (nome.includes(\"entrega\")) {\n    dadosForm.entregasEsperadas = valor;\n  }\n  else if (nome.includes(\"fora\") || nome.includes(\"não está incluído\")) {\n    dadosForm.foraEscopo = valor;\n  }\n  else if (nome.includes(\"ferramenta\") || nome.includes(\"sistema\")) {\n    dadosForm.ferramentasSistemas = valor;\n  }\n  else if (nome.includes(\"início\") || nome.includes(\"inicio\")) {\n    dadosForm.inicioPrevisto = formataData(valor);\n  }\n  else if (nome.includes(\"prazo máximo\") || nome.includes(\"prazo desejado\")) {\n    dadosForm.prazoCliente = formataData(valor);\n  }\n  else if (nome.includes(\"orçamento\") || nome.includes(\"faixa\")) {\n    dadosForm.orcamento = valor;\n  }\n  else if (nome.includes(\"aprovação\")) {\n    dadosForm.prazoAprovacao = formataData(valor);\n  }\n  else if (nome.includes(\"responsável comercial\") || nome.includes(\"responsavel comercial\")) {\n    if (Array.isArray(field.value) && field.value.length > 0 && field.value[0].username) {\n      responsavelCustom = field.value[0].username;\n    } else if (typeof field.value === 'string') {\n      responsavelCustom = field.value;\n    }\n  }\n});\n\nif (responsavelCustom) {\n  dadosForm.responsavelComercial = String(responsavelCustom).trim();\n} else if (item.creator && item.creator.username) {\n  dadosForm.responsavelComercial = String(item.creator.username).trim();\n} else {\n  dadosForm.responsavelComercial = \"Não informado\";\n}\n\nfunction limpaTexto(txt) {\n  if (!txt) return \"Não informado\";\n  return String(txt).replace(/\\n{2,}/g, '\\n').trim();\n}\n\nconst promptIa = [\n  \"Você é um gerente de projetos sênior e especialista em planejamento estratégico de uma Empresa Júnior de consultoria empresarial.\",\n  `Com base nas informações detalhadas do briefing abaixo, crie uma EAP (Estrutura Analítica do Projeto) altamente customizada, viável, respeitando a complexidade e o porte da empresa, alinhada aos combinados e que caiba entre o Início Previsto e o Prazo Máximo do Cliente, além de uma minuta de escopo e precificação.`,\n  \"\",\n  \"--- CONTEXTO DO CLIENTE E PROJETO ---\",\n  `- Nome do Contato / Lead: ${limpaTexto(nomeCliente)}`,\n  `- Nome da Empresa: ${limpaTexto(dadosForm.nomeEmpresa)}`,\n  `- Porte da Empresa: ${limpaTexto(dadosForm.porteEmpresa)}`,\n  `- Ramo de Atividade: ${limpaTexto(dadosForm.ramoAtividade)}`,\n  `- Faturamento Estimado: ${limpaTexto(dadosForm.faturamento)}`,\n  \"\",\n  \"--- PARÂMETROS DO SERVIÇO ---\",\n  `- Tipo de Serviço: ${limpaTexto(dadosForm.servico)}`,\n  `- Categoria do Portfólio: ${limpaTexto(dadosForm.categoriaPortfolio)}`,\n  `- Complexidade Estimada: ${limpaTexto(dadosForm.complexidade)}`,\n  `- Objetivo do Projeto: ${limpaTexto(dadosForm.objetivoProjeto)}`,\n  \"\",\n  \"--- NOVOS DETALHES DO BRIEFING ---\",\n  `- Contexto da Empresa: ${limpaTexto(dadosForm.contextoEmpresa)}`,\n  `- Problema a Resolver: ${limpaTexto(dadosForm.problema)}`,\n  `- Combinados: ${limpaTexto(dadosForm.combinados)}`,\n  `- Resultados-chave Esperados: ${limpaTexto(dadosForm.resultadosChave)}`,\n  `- Indicadores que o Cliente já Acompanha: ${limpaTexto(dadosForm.indicadoresCliente)}`,\n  `- Entregas Esperadas: ${limpaTexto(dadosForm.entregasEsperadas)}`,\n  `- O que NÃO está incluído no Escopo: ${limpaTexto(dadosForm.foraEscopo)}`,\n  `- Ferramentas e Sistemas do Cliente: ${limpaTexto(dadosForm.ferramentasSistemas)}`,\n  \"\",\n  \"--- PRAZOS E ORÇAMENTO ---\",\n  `- Início Previsto: ${limpaTexto(dadosForm.inicioPrevisto)}`,\n  `- Prazo Máximo do Cliente: ${limpaTexto(dadosForm.prazoCliente)}`,\n  `- Faixa de Orçamento: ${limpaTexto(dadosForm.orcamento)}`,\n  `- Prazo Limite para Aprovação da EAP: ${limpaTexto(dadosForm.prazoAprovacao)}`,\n  `- Responsável Comercial: ${limpaTexto(dadosForm.responsavelComercial)}`,\n  \"\",\n  \"--- DIRETRIZES DE SAÍDA E REGRAS ---\",\n  'Retorne a resposta estritamente em formato JSON válido, contendo:',\n  '1. \"resumo_executivo\": texto descritivo detalhado.',\n  '2. \"fases\": lista de fases com \"nome_fase\", \"descricao\", \"duracao_dias\" e \"tarefas\" (cada tarefa com \"nome_tarefa\", \"descricao\", \"dias_uteis\", \"reunioes\", \"horas\").',\n  '3. \"precificacao\": objeto contendo:',\n  '   - \"custo_total_projeto\" (número): valor total do projeto calculado considerando as horas totais, complexidade e a faixa de orçamento informada.',\n  '   - \"valor_hora_sugerido\" (número): valor da hora técnica adequado ao porte e faturamento da empresa.',\n  '   - \"margem_lucro\" (texto ou número): margem aplicada.',\n  '   - \"condicoes_pagamento\" (texto): condições sugeridas alinhadas ao orçamento.',\n  '   - \"justificativa\" (texto): explicação detalhada da composição do preço baseada no faturamento, complexidade e esforço.',\n  '',\n  'REGRAS OBRIGATÓRIAS:',\n  '- Considere apenas dias úteis (sem finais de semana/feriados).',\n  '- Carga horária média de até 3h por dia útil por tarefa.',\n  '- Não altere os números definidos em \"Combinados\".'\n].join(\"\\n\");\n\nreturn {\n  json: {\n    nomeCliente,\n    dadosForm,\n    promptIa\n  }\n};"
+      },
+      "id": "6f4ab08c-fc6c-4410-bb17-053b0db42150",
+      "name": "Preparar os dados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputData = $input.item.json;\nconst aiResponse = inputData.mergedResponse || (inputData.message && inputData.message.content) || inputData.text || '';\n\nlet jsonString = aiResponse.trim();\nif (jsonString.indexOf('```json') === 0) {\n  jsonString = jsonString.substring(7);\n} else if (jsonString.indexOf('```') === 0) {\n  jsonString = jsonString.substring(3);\n}\nif (jsonString.lastIndexOf('```') !== -1) {\n  jsonString = jsonString.substring(0, jsonString.lastIndexOf('```'));\n}\njsonString = jsonString.trim();\n\nconst eap = JSON.parse(jsonString);\n\nfunction adicionaDiasUteis(dataBase, dias) {\n  let d = new Date(dataBase);\n  let diasRestantes = Math.max(0, dias - 1);\n  while (diasRestantes > 0) {\n    d.setDate(d.getDate() + 1);\n    let diaSemana = d.getDay();\n    if (diaSemana !== 0 && diaSemana !== 6) {\n      diasRestantes--;\n    }\n  }\n  return d;\n}\n\nfunction proximoDiaUtil(dataBase) {\n  let d = new Date(dataBase);\n  d.setDate(d.getDate() + 1);\n  while (d.getDay() === 0 || d.getDay() === 6) {\n    d.setDate(d.getDate() + 1);\n  }\n  return d;\n}\n\nfunction formataDataBR(date) {\n  const dia = String(date.getDate()).padStart(2, '0');\n  const mes = String(date.getMonth() + 1).padStart(2, '0');\n  const ano = date.getFullYear();\n  return dia + '/' + mes + '/' + ano;\n}\n\nlet dataCorrente = new Date(2026, 9, 26); // 26/10/2026\nlet linhasEap = [];\nlet linhasCronograma = [];\nlet totalHorasGeral = 0;\nlet totalDiasGeral = 0;\n\nif (eap.fases && Array.isArray(eap.fases)) {\n  for (let indexFase = 0; indexFase < eap.fases.length; indexFase++) {\n    const fase = eap.fases[indexFase];\n    const numFase = indexFase + 1;\n    \n    let totalHorasFase = 0;\n    let totalReunioesFase = 0;\n    let totalDiasFase = 0;\n\n    if (fase.tarefas && Array.isArray(fase.tarefas)) {\n      fase.tarefas.forEach(t => { \n        totalHorasFase += (t.horas || 0); \n        totalReunioesFase += (t.reunioes || 0);\n        const diasT = t.dias_uteis || Math.ceil((t.horas || 3) / 2.5);\n        totalDiasFase += diasT;\n      });\n    }\n\n    totalHorasGeral += totalHorasFase;\n    totalDiasGeral += totalDiasFase;\n\n    const duracaoFase = fase.duracao_dias || totalDiasFase;\n    const dataFimFase = adicionaDiasUteis(dataCorrente, duracaoFase);\n\n    linhasEap.push({\n      'ETAPA': String(numFase),\n      'STATUS': 'Não iniciada',\n      'NOME DA ETAPA': fase.nome_fase || ('Fase ' + numFase),\n      'DESCRIÇÃO': fase.descricao || '',\n      'DIAS ÚTEIS': duracaoFase,\n      'REUNIÕES': totalReunioesFase,\n      'HORAS': totalHorasFase\n    });\n\n    linhasCronograma.push({\n      'ETAPA': String(numFase),\n      'INÍCIO': formataDataBR(dataCorrente),\n      'FIM': formataDataBR(dataFimFase)\n    });\n\n    let dataInicioTarefa = new Date(dataCorrente);\n\n    if (fase.tarefas && Array.isArray(fase.tarefas)) {\n      for (let indexTarefa = 0; indexTarefa < fase.tarefas.length; indexTarefa++) {\n        const tarefa = fase.tarefas[indexTarefa];\n        const numTarefa = indexTarefa + 1;\n        const codigoEtapa = numFase + '.' + numTarefa;\n        const diasUteisTarefa = tarefa.dias_uteis || Math.ceil((tarefa.horas || 3) / 2.5);\n        const dataFimTarefa = adicionaDiasUteis(dataInicioTarefa, diasUteisTarefa);\n\n        linhasEap.push({\n          'ETAPA': codigoEtapa,\n          'STATUS': tarefa.status || '',\n          'NOME DA ETAPA': tarefa.nome_tarefa || '',\n          'DESCRIÇÃO': tarefa.descricao || '',\n          'DIAS ÚTEIS': diasUteisTarefa,\n          'REUNIÕES': tarefa.reunioes || 0,\n          'HORAS': tarefa.horas || 0\n        });\n\n        linhasCronograma.push({\n          'ETAPA': codigoEtapa,\n          'INÍCIO': formataDataBR(dataInicioTarefa),\n          'FIM': formataDataBR(dataFimTarefa)\n        });\n\n        dataInicioTarefa = proximoDiaUtil(dataFimTarefa);\n      }\n    }\n\n    dataCorrente = proximoDiaUtil(dataFimFase);\n  }\n}\n\n// ==========================================\n// CÁLCULO EXATO DA PRECIFICAÇÃO CONFORME PLANILHA\n// ==========================================\n// Pega a complexidade direto do formulário ou da resposta da IA\nconst complexidadeProjeto = (inputData.dadosForm && inputData.dadosForm.complexidade) || \n                            (eap.precificacao && eap.precificacao.complexidade) || \n                            \"Média\";\n\n// Parâmetros base da EJ\nconst custoFixoPorHora = 52.525473; \nconst custoVariavelProjeto = 0.0; \nconst impostoServicos = 0.05;\nconst taxaFejece = 0.04;\nconst auxilioTransporte = 0.03;\nconst auxilioAlimentacao = 0.01;\nconst investimentosReservas = 0.05;\n\n// Lucro líquido conforme complexidade (Média = 7%, Alta = 12%, Baixa = 2%)\nlet lucroLiquido = 0.02; \nconst compLower = String(complexidadeProjeto).toLowerCase();\nif (compLower.includes('médi') || compLower.includes('medi')) {\n  lucroLiquido = 0.07;\n} else if (compLower.includes('alt')) {\n  lucroLiquido = 0.12;\n}\n\nconst custoFixoProjeto = totalHorasGeral * custoFixoPorHora;\nconst custoTotalProjeto = custoFixoProjeto + custoVariavelProjeto;\n\n// Soma dos percentuais para o Markup\nconst somaPercentuais = impostoServicos + taxaFejece + auxilioTransporte + auxilioAlimentacao + lucroLiquido + investimentosReservas;\nconst markup = 1 / (1 - somaPercentuais);\nconst valorTotalProjeto = custoTotalProjeto * markup;\n\n// Linhas mapeadas exatamente para preencher a coluna \"VALOR\" correspondente a cada fator\nlet linhasPrecificacao = [\n  { 'FATOR': 'Horas do projeto', 'VALOR': totalHorasGeral },\n  { 'FATOR': 'Custo fixo por hora', 'VALOR': Number(custoFixoPorHora.toFixed(4)) },\n  { 'FATOR': 'Custo fixo do projeto', 'VALOR': Number(custoFixoProjeto.toFixed(2)) },\n  { 'FATOR': 'Custos variáveis', 'VALOR': Number(custoVariavelProjeto.toFixed(2)) },\n  { 'FATOR': 'Custo total do projeto', 'VALOR': Number(custoTotalProjeto.toFixed(2)) },\n  { 'FATOR': 'Complexidade', 'VALOR': complexidadeProjeto },\n  { 'FATOR': 'Impostos e taxas', 'VALOR': Number((impostoServicos + taxaFejece).toFixed(2)) },\n  { 'FATOR': 'Auxílios da equipe', 'VALOR': Number((auxilioTransporte + auxilioAlimentacao).toFixed(2)) },\n  { 'FATOR': 'Lucro líquido desejado', 'VALOR': Number(lucroLiquido.toFixed(2)) },\n  { 'FATOR': 'Investimentos e reservas', 'VALOR': Number(investimentosReservas.toFixed(2)) },\n  { 'FATOR': 'Markup', 'VALOR': Number(markup.toFixed(4)) },\n  { 'FATOR': 'VALOR TOTAL DO PROJETO', 'VALOR': Number(valorTotalProjeto.toFixed(2)) }\n];\n\nreturn [{\n  json: {\n    eap: linhasEap,\n    cronograma: linhasCronograma,\n    precificacao: linhasPrecificacao\n  }\n}];"
+      },
+      "id": "65070fe1-dceb-4f3d-a661-c2066be55dc4",
+      "name": "Preparar os dados enviados da IA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1024,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "precificacao",
+        "options": {}
+      },
+      "id": "77d9d293-0fc7-49c4-9499-88b3f156123c",
+      "name": "Separar dados da PRECIFICAÇÃO",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        -336
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Copiar a planilha modelo').first().json.id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "PRECIFICAÇÃO",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "FATOR"
+          ],
+          "schema": [
+            {
+              "id": "FATOR",
+              "displayName": "FATOR",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "PONTOS LEVADOS EM CONSIDERAÇÃO",
+              "displayName": "PONTOS LEVADOS EM CONSIDERAÇÃO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "VALOR",
+              "displayName": "VALOR",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "UNIDADE",
+              "displayName": "UNIDADE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "d7bd055a-eaa4-4d11-b7d4-091d51572733",
+      "name": "Preencher a aba PRECIFICAÇÃO",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1472,
+        -336
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KpJLMi240uPpQNeZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "cronograma",
+        "options": {}
+      },
+      "id": "636c95f1-0a37-4cd7-bebd-a6f63385e865",
+      "name": "Separar dados para o CRONOGRAMA",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Copiar a planilha modelo').first().json.id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "CRONOGRAMA",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ETAPA": "={{ $json.ETAPA }}",
+            "FIM": "={{ $json.FIM }}",
+            "INÍCIO": "={{ $json.INÍCIO }}"
+          },
+          "matchingColumns": [
+            "ETAPA"
+          ],
+          "schema": [
+            {
+              "id": "ETAPA",
+              "displayName": "ETAPA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "NOME DA ETAPA",
+              "displayName": "NOME DA ETAPA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "DIAS ÚTEIS",
+              "displayName": "DIAS ÚTEIS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "INÍCIO",
+              "displayName": "INÍCIO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "FIM",
+              "displayName": "FIM",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "f323f5eb-2165-4798-b80a-1882cb6c5da8",
+      "name": "Preencher a aba CRONOGRAMA",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1472,
+        -144
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KpJLMi240uPpQNeZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "eap",
+        "options": {}
+      },
+      "id": "2476bf2a-cb3c-45b3-ad18-d0362057356a",
+      "name": "Separar dados da EAP",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Copiar a planilha modelo').first().json.id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "EAP",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "ETAPA"
+          ],
+          "schema": [
+            {
+              "id": "ETAPA",
+              "displayName": "ETAPA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "STATUS",
+              "displayName": "STATUS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "NOME DA ETAPA",
+              "displayName": "NOME DA ETAPA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "DESCRIÇÃO",
+              "displayName": "DESCRIÇÃO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "DIAS ÚTEIS",
+              "displayName": "DIAS ÚTEIS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "REUNIÕES",
+              "displayName": "REUNIÕES",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "HORAS",
+              "displayName": "HORAS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "resumo_executivo",
+              "displayName": "resumo_executivo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "nome_fase",
+              "displayName": "nome_fase",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "descricao_fase",
+              "displayName": "descricao_fase",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "duracao_dias_fase",
+              "displayName": "duracao_dias_fase",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "nome_tarefa",
+              "displayName": "nome_tarefa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "descricao_tarefa",
+              "displayName": "descricao_tarefa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "horas_tarefa",
+              "displayName": "horas_tarefa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "6fbf9258-ff2d-4ad6-b967-f75d646c3d34",
+      "name": "Preencher a aba EAP",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1472,
+        48
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KpJLMi240uPpQNeZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "update",
+        "id": "={{ $('Obter dados da resposta do forms').first().json.id }}",
+        "updateFields": {
+          "status": "EM ANÁLISE"
+        }
+      },
+      "id": "6425f243-dfac-4916-a5a7-6272642bba0e",
+      "name": "Mudar status proposta para EM ANÁLISE",
+      "type": "n8n-nodes-base.clickUp",
+      "typeVersion": 1,
+      "position": [
+        1696,
+        48
+      ],
+      "credentials": {
+        "clickUpOAuth2Api": {
+          "id": "riJEP96Y9DAkmCVU",
+          "name": "ClickUp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $json.dadosForm.nomeEmpresa }} - {{ $json.dadosForm.servico }}",
+        "driveId": {
+          "__rl": true,
+          "value": "=",
+          "mode": "id"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1-TQUvvqlY9XM8GqhtBZywkkOQDGwf1CB",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "f79005ca-01e1-4d3e-b470-7f6762839dbc",
+      "name": "Criar pasta da proposta",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        736,
+        -336
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "pzdnBWdCozyNtzwn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "1jxWtFDSYsfHwlw2D-mK7xUSAs_8UlMjgsAV8Ag2qjJU",
+          "mode": "id"
+        },
+        "name": "=Proposta - {{ $('Preparar os dados').item.json.dadosForm.nomeEmpresa }}",
+        "sameFolder": false,
+        "driveId": {
+          "__rl": true,
+          "value": "=",
+          "mode": "id"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Criar pasta da proposta').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "aa24c269-5f9b-48b8-bb0d-fc39ec827b22",
+      "name": "Copiar a planilha modelo",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1024,
+        -336
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "pzdnBWdCozyNtzwn",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.promptIa }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        672,
+        -144
+      ],
+      "id": "29a9d2e4-ba45-4a11-ab59-bfd7c7cdddcd",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "GATILHO - Receber proposta solicitada pelo forms": {
+      "main": [
+        [
+          {
+            "node": "Obter dados da resposta do forms",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obter dados da resposta do forms": {
+      "main": [
+        [
+          {
+            "node": "Preparar os dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar os dados": {
+      "main": [
+        [
+          {
+            "node": "Criar pasta da proposta",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar os dados enviados da IA": {
+      "main": [
+        [
+          {
+            "node": "Separar dados da PRECIFICAÇÃO",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Separar dados para o CRONOGRAMA",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Separar dados da EAP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separar dados da PRECIFICAÇÃO": {
+      "main": [
+        [
+          {
+            "node": "Preencher a aba PRECIFICAÇÃO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separar dados para o CRONOGRAMA": {
+      "main": [
+        [
+          {
+            "node": "Preencher a aba CRONOGRAMA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separar dados da EAP": {
+      "main": [
+        [
+          {
+            "node": "Preencher a aba EAP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preencher a aba EAP": {
+      "main": [
+        [
+          {
+            "node": "Mudar status proposta para EM ANÁLISE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar pasta da proposta": {
+      "main": [
+        [
+          {
+            "node": "Copiar a planilha modelo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Preparar os dados enviados da IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "71c87f07-0451-47ca-b7da-47f9c96a07d7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f7e9b6f8796922a926ddfd2c29485e24d7fa22ff2bfe3ef6211e6ecb89dd6cc2"
+  },
+  "nodeGroups": [],
+  "id": "WWgipqPhWRUg6MbC",
+  "tags": []
+}
