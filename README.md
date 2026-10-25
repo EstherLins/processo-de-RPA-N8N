@@ -59,7 +59,7 @@ O sistema é dividido em fluxos desacoplados conectados pelo status do ClickUp:
 - **Google Drive:** Criação da estrutura de pastas da empresa (`00 - Comercial`, etc.) e cópia de planilhas/documentos base.
 - **Gestão de Operações:** Criação automática da lista de tarefas e subtarefas no ClickUp com alocação dos membros responsáveis pela execução.
 
-## 4. Governança, Segurança e Tratamento de Erros
+## 4. Governança, Segurança e Tratamento de Erros (recomendações)
 
 - **Uso de IA Integrada:** Adoção do ecossistema nativo do Google Gemini no n8n para interpretação e geração de linguagem natural.
 - **Anonimização de Dados (LGPD):** Remoção/substituição prévia de dados sensíveis e pessoais antes do envio do prompt para serviços de IA de terceiros.
